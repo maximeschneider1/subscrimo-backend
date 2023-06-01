@@ -5,6 +5,10 @@ const dotenv = require('dotenv');
 const passport = require('passport');
 const jwt = require('jsonwebtoken'); 
 const configurePassport = require('./src/config/passport');
+const User = require('./src/models/user');
+const { google } = require('googleapis');
+const youtube = google.youtube('v3');
+
 
 // Load environment variables
 dotenv.config();
@@ -13,7 +17,7 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000', credentials: true}));
 app.use(express.json());
 app.use(
   session({
@@ -23,7 +27,6 @@ app.use(
   })
 );
 
-// Configure Passport.js
 configurePassport(app);
 
 // Routes
@@ -34,26 +37,56 @@ app.get(
   })
 );
 
-app.get('/auth/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login' }),
-  async (req, res) => {
-    // Générer le token JWT
-    const payload = { 
-      id: req.user.id, 
-      email: req.user.emails[0].value
-    };
-    const secret = process.env.JWT_SECRET; 
-    const options = { expiresIn: '1h' }; 
-    const token = jwt.sign(payload, secret, options); 
-
-    // Envoyer le token JWT au client
-    res.cookie('jwt', token, { httpOnly: true }); 
-    res.redirect('/'); 
-  }
+app.get(
+  '/auth/google/callback',
+  passport.authenticate('google', { 
+    failureRedirect: '/login',
+    successRedirect: 'http://localhost:3000/'
+  }),
 );
 
-app.use('/', (req, res) => {
-  res.send('Hello Max');
+// Check if user is authenticated
+app.get('/api/checkAuth', (req, res) => {
+
+  if (req.user) {
+    const user = {
+      name: req.user.displayName,
+      email: req.user.emails[0].value,
+      username: req.user.emails[0].value,
+      AllUserInfo: req.user
+    };
+    res.status(200).json({ loggedIn: true, user: user });
+  } else {
+    res.status(200).json({ loggedIn: false, user: null });
+  }
+});
+
+
+app.get('/api/subscriptions', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).send('Not authenticated');
+  }
+
+  const pageToken = req.query.pageToken || null;
+
+  try {
+    const response = await youtube.subscriptions.list({
+      part: 'snippet,contentDetails',
+      mine: true,
+      maxResults: 50, 
+      key: process.env.GOOGLE_CLIENT_SECRET, 
+      access_token: req.user.accessToken, 
+      pageToken 
+    });
+
+    res.json({ 
+      items: response.data.items, 
+      nextPageToken: response.data.nextPageToken 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error retrieving subscriptions');
+  }
 });
 
 // Start the server

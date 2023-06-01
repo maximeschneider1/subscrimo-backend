@@ -13,6 +13,8 @@ const getEmailByUsername = async (username) => {
   }
 };
 
+
+
 const userExists = async (email) => {
     try {
       const query = "SELECT EXISTS (SELECT 1 FROM \"User\" WHERE email = $1);";

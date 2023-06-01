@@ -1,6 +1,9 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { userExists, insertUser } = require('../controllers/databaseController');
+const pool = require('../config/database')
+
+
 
 module.exports = function configurePassport(app) {
   let callbackUrl = process.env.REDIRECT_URI;
@@ -9,7 +12,6 @@ module.exports = function configurePassport(app) {
     callbackUrl = process.env.DEV_GOOGLE_CALLBACK_URL;
   }
 
-  // Configure Passport.js Google OAuth2 strategy
   passport.use(
     new GoogleStrategy(
       {
@@ -18,7 +20,7 @@ module.exports = function configurePassport(app) {
         callbackURL: callbackUrl,
       },
       async (accessToken, refreshToken, profile, done) => {
-        // Save user profile and tokens to the database
+        // TODO /// Save user profile and tokens to the database
     
         // Check if the user exists in the database
         const exists = await userExists(profile.emails[0].value);
@@ -31,18 +33,18 @@ module.exports = function configurePassport(app) {
           await insertUser(profile.emails[0].value, accessToken, refreshToken);
         }
         
+        profile.accessToken = accessToken; // store accessToken in user object
         done(null, profile);
       }
     )
   );
   
-  // Passport.js session serialization
   passport.serializeUser((user, done) => {
-    done(null, user);
+    done(null, user); // save accessToken to the session
   });
-  
+    
   passport.deserializeUser((user, done) => {
-    done(null, user);
+    done(null, user); 
   });
   
   // Initialize Passport.js middleware
