@@ -22,9 +22,9 @@ const app = express();
 // CORS configuration
 let corsOptions;
 if (process.env.DEPLOYMENT === 'development') {
-  corsOptions = { origin: 'http://localhost:3000', credentials: true };
+  corsOptions = { origin: true, credentials: true };
 } else {
-  corsOptions = { origin: 'https://subscrimo-frontend.onrender.com', credentials: true };
+  corsOptions = { origin: true, credentials: true };
 }
 
 app.use(cors(corsOptions));
