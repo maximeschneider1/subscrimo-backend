@@ -36,6 +36,11 @@ app.use(
     secret: 'your_secret_key',
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      secure: process.env.DEPLOYMENT === 'production', // Use secure cookies in production
+      sameSite: process.env.DEPLOYMENT === 'production' ? 'none' : 'lax', // Allow cookies in cross-site requests in production
+      httpOnly: true
+    }
   })
 );
 
