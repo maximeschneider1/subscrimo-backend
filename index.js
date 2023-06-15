@@ -17,7 +17,19 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors({ origin: 'http://localhost:3000', credentials: true}));
+
+
+// CORS configuration
+let corsOptions;
+if (process.env.DEPLOYMENT === 'development') {
+  corsOptions = { origin: 'http://localhost:3000', credentials: true };
+} else {
+  corsOptions = { origin: 'https://subscrimo-frontend.onrender.com', credentials: true };
+}
+
+app.use(cors(corsOptions));
+
+
 app.use(express.json());
 app.use(
   session({
