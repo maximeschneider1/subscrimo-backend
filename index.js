@@ -40,7 +40,7 @@ app.use(
       secure: process.env.DEPLOYMENT === 'production',
       sameSite: process.env.DEPLOYMENT === 'production' ? 'none' : 'lax',
       httpOnly: true,
-      domain: process.env.DEPLOYMENT === 'production' ? '.subscrimo-backend.onrender.com' : 'localhost',
+      domain: process.env.DEPLOYMENT === 'production' ? '.subscrimo-frontend.onrender.com' : 'localhost',
     }
   })
 );
