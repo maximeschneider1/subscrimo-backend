@@ -26,6 +26,7 @@ if (process.env.DEPLOYMENT === 'development') {
 } else {
   corsOptions = { origin: true, credentials: true };
 }
+//yes
 
 app.use(cors(corsOptions));
 
