@@ -37,12 +37,14 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.DEPLOYMENT === 'production', // Use secure cookies in production
-      sameSite: process.env.DEPLOYMENT === 'production' ? 'none' : 'lax', // Allow cookies in cross-site requests in production
-      httpOnly: true
+      secure: process.env.DEPLOYMENT === 'production',
+      sameSite: process.env.DEPLOYMENT === 'production' ? 'none' : 'lax',
+      httpOnly: true,
+      domain: process.env.DEPLOYMENT === 'production' ? '.subscrimo-backend.onrender.com' : 'localhost',
     }
   })
 );
+
 
 configurePassport(app);
 
