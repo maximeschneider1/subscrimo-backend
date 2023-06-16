@@ -64,25 +64,35 @@ app.get(
   }),
 );
 
-// Check if user is authenticated
 app.get('/api/checkAuth', (req, res) => {
 
-  if (req.user) {
+  if (req.sessionStore) {
+    const session = JSON.parse(Object.values(req.sessionStore.sessions)[0]);
     const user = {
-      name: req.user.displayName,
-      email: req.user.emails[0].value,
-      username: req.user.emails[0].value,
-      AllUserInfo: req.user
+      name: session.passport.user.displayName,
+      email: session.passport.user.emails[0].value,
+      username: session.passport.user.emails[0].value,
+      AllUserInfo: session.passport.user,
     };
-    res.status(200).json({ loggedIn: true, user: user });
+    res.status(200).json({
+      loggedIn: true,
+      user: user,
+    });
   } else {
-    res.status(200).json({ loggedIn: false, user: null });
+    res.status(401).json({
+      loggedIn: false,
+      user: null,
+    });
   }
 });
 
-
 app.get('/api/subscriptions', async (req, res) => {
-  if (!req.user) {
+  // Parse session
+  const sessionId = Object.keys(req.sessionStore.sessions)[0];
+  const session = JSON.parse(req.sessionStore.sessions[sessionId]);
+  const user = session.passport.user;
+
+  if (!user) {
     return res.status(401).send('Not authenticated');
   }
 
@@ -94,7 +104,7 @@ app.get('/api/subscriptions', async (req, res) => {
       mine: true,
       maxResults: 50, 
       key: process.env.GOOGLE_CLIENT_SECRET, 
-      access_token: req.user.accessToken, 
+      access_token: user.accessToken, 
       pageToken 
     });
 
@@ -107,6 +117,7 @@ app.get('/api/subscriptions', async (req, res) => {
     res.status(500).send('Error retrieving subscriptions');
   }
 });
+
 
 // Start the server
 const PORT = process.env.PORT || 3001;
